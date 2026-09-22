@@ -82,6 +82,9 @@ invalid-typed-dict-field = "ignore"
 invalid-yield = "ignore"
 no-matching-overload = "ignore"
 unused-type-ignore-comment = "ignore"
+# langgraph core is not a dependency of this package; its lazy imports
+# (e.g. the provenance reducer) can't be resolved locally
+unresolved-import = "ignore"
 
 [tool.pytest-watcher]
 now = true

@@ -600,3 +600,15 @@ class PostgresSaver(BasePostgresSaver):
 
 
 __all__ = ["PostgresSaver", "BasePostgresSaver", "ShallowPostgresSaver", "Conn"]
+
+from langgraph.checkpoint.postgres.provenance import (  # noqa: E402
+    ProvenanceAsyncPostgresSaver,
+    ProvenancePostgresSaver,
+    add_messages_with_provenance,
+)
+
+__all__ += [
+    "ProvenanceAsyncPostgresSaver",
+    "ProvenancePostgresSaver",
+    "add_messages_with_provenance",
+]
