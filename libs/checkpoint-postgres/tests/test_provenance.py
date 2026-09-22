@@ -13,7 +13,6 @@ from psycopg.rows import dict_row
 from langgraph.checkpoint.postgres import ProvenancePostgresSaver
 from langgraph.checkpoint.postgres.provenance import (
     PENDING_PROVENANCE,
-    PROVENANCE_KEY,
     ProvenanceAsyncPostgresSaver,
 )
 from tests.conftest import DEFAULT_URI
@@ -59,7 +58,7 @@ def test_put_attaches_provenance_and_strips_marker(saver) -> None:
     assert len(messages) == 1
     m = messages[0]
     assert PENDING_PROVENANCE not in m.additional_kwargs
-    prov = m.additional_kwargs[PROVENANCE_KEY]
+    prov = m.additional_kwargs
     assert prov["checkpoint_id"] == saved_config["configurable"]["checkpoint_id"]
     assert prov["parent_checkpoint_id"] is None
 
@@ -79,7 +78,7 @@ def test_put_records_parent_checkpoint_id(saver) -> None:
     assert second_config["configurable"]["checkpoint_id"] != first_id
 
     messages = saver.get_tuple(second_config).checkpoint["channel_values"]["messages"]
-    prov = messages[0].additional_kwargs[PROVENANCE_KEY]
+    prov = messages[0].additional_kwargs
     assert prov["checkpoint_id"] == second_config["configurable"]["checkpoint_id"]
     assert prov["parent_checkpoint_id"] == first_id
 
@@ -87,7 +86,7 @@ def test_put_records_parent_checkpoint_id(saver) -> None:
     first_messages = saver.get_tuple(first_config).checkpoint["channel_values"][
         "messages"
     ]
-    first_prov = first_messages[0].additional_kwargs[PROVENANCE_KEY]
+    first_prov = first_messages[0].additional_kwargs
     assert first_prov["parent_checkpoint_id"] is None
 
 
@@ -110,7 +109,7 @@ async def test_aput_records_provenance(conn) -> None:
     messages = (await saver.aget_tuple(saved_config)).checkpoint["channel_values"][
         "messages"
     ]
-    prov = messages[0].additional_kwargs[PROVENANCE_KEY]
+    prov = messages[0].additional_kwargs
     assert prov["checkpoint_id"] == saved_config["configurable"]["checkpoint_id"]
     assert prov["parent_checkpoint_id"] is None
     assert PENDING_PROVENANCE not in messages[0].additional_kwargs
@@ -154,12 +153,12 @@ def test_reducer_and_graph_end_to_end() -> None:
 
         assert len(result["messages"]) == 2
         for m in result["messages"]:
-            prov = m.additional_kwargs[PROVENANCE_KEY]
+            prov = m.additional_kwargs
             assert prov["checkpoint_id"]
             assert PENDING_PROVENANCE not in m.additional_kwargs
 
-        human_prov = result["messages"][0].additional_kwargs[PROVENANCE_KEY]
-        ai_prov = result["messages"][1].additional_kwargs[PROVENANCE_KEY]
+        human_prov = result["messages"][0].additional_kwargs
+        ai_prov = result["messages"][1].additional_kwargs
         assert ai_prov["checkpoint_id"] != human_prov["checkpoint_id"]
         # the human message was written in the input checkpoint, whose id is
         # the parent of the checkpoint the AI reply was written in

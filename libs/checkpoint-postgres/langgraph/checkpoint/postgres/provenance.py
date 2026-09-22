@@ -9,9 +9,9 @@ Two pieces work together:
    being written and its parent checkpoint ID) right before serialization.
 
 The tag only ever exists in memory and is never persisted. After a run, each
-processed message carries `additional_kwargs["provenance"]` with the
-`checkpoint_id` it was persisted in and the `parent_checkpoint_id` it
-descends from.
+processed message carries `additional_kwargs["checkpoint_id"]` (the checkpoint
+it was persisted in) and `additional_kwargs["parent_checkpoint_id"]` (the
+checkpoint it descends from).
 
 The reducer requires the `langgraph` core package (for `add_messages`), which
 is not a hard dependency of `langgraph-checkpoint-postgres`; it is imported
@@ -34,9 +34,6 @@ if TYPE_CHECKING:
 
 PENDING_PROVENANCE = "__provenance_pending"
 """Temporary marker added by the reducer and replaced by the saver."""
-
-PROVENANCE_KEY = "provenance"
-"""`additional_kwargs` key under which provenance is stored."""
 
 
 def add_messages_with_provenance(
@@ -81,10 +78,8 @@ def _apply_message_provenance(
     for m in messages:
         kw = m.additional_kwargs
         if isinstance(m, BaseMessage) and kw.pop(PENDING_PROVENANCE, None):
-            kw[PROVENANCE_KEY] = {
-                "checkpoint_id": checkpoint_id,
-                "parent_checkpoint_id": parent_checkpoint_id,
-            }
+            kw["checkpoint_id"] = checkpoint_id
+            kw["parent_checkpoint_id"] = parent_checkpoint_id
 
 
 class ProvenancePostgresSaver(PostgresSaver):
@@ -116,7 +111,6 @@ class ProvenanceAsyncPostgresSaver(AsyncPostgresSaver):
 
 
 __all__ = [
-    "PROVENANCE_KEY",
     "PENDING_PROVENANCE",
     "ProvenanceAsyncPostgresSaver",
     "ProvenancePostgresSaver",
